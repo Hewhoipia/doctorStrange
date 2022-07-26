@@ -1,5 +1,5 @@
 ﻿//The library here is concretely set, students are not allowed to include any other libraries.
-// array, link list, nullptr, dynamic array, xem lai li thuyet nha bro
+// array, link list (important), nullptr, dynamic array, xem lai li thuyet nha bro
 #ifndef doctorStrange_h
 #define doctorStrange_h
 
