@@ -1,6 +1,5 @@
 ﻿//The library here is concretely set, students are not allowed to include any other libraries.
-//hello
-//hahaha
+// array, link list, dynamic array, xem lai li thuyet nha bro
 #ifndef doctorStrange_h
 #define doctorStrange_h
 
@@ -547,6 +546,10 @@ void event12(string& DM1, string& DM2, bool& wandaKill, int& hp, int& maxHP, int
     }
 }
 
+bool timeStone=0; //=1 when meet event 15
+int numOfnTravel=0; // number of event T travels to
+int maxhp=0; //max hp through events until meet event 15
+
 int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & events) {
     ///Students have to complete this function and DO NOT modify any parameters in this function.
     int result = 0;
@@ -639,10 +642,15 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
                     }
 
                     //event15
-                    if (m == 5) {
+                    if (m == 5 && timeStone==0) {
                         n += 14;
-
-                        i++;
+                        timeStone=1;
+                        cout << "time travel!!"<endl; //add
+                        return int handleEvents(HP,LV, EXP, TS, events);
+                    }
+                    else {
+                        n += 14;
+                        i++1;
                     }
                 }
                 else {
