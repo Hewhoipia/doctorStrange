@@ -645,12 +645,12 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
                     if (m == 5 && timeStone==0) {
                         n += 14;
                         timeStone=1;
-                        cout << "time travel!!"<endl; //add
-                        return int handleEvents(HP,LV, EXP, TS, events);
+                        cout << "time travel!!"<<endl; //add
+                        return handleEvents(HP,LV, EXP, TS, events);
                     }
                     else {
                         n += 14;
-                        i++1;
+                        i++;
                     }
                 }
                 else {
