@@ -1,5 +1,4 @@
 ﻿//The library here is concretely set, students are not allowed to include any other libraries.
-// array, link list (important), nullptr, dynamic array, xem lai li thuyet nha brooo
 #ifndef doctorStrange_h
 #define doctorStrange_h
 
@@ -13,11 +12,15 @@
 using namespace std;
 
 void upLevelsAndHP(int& hp, int& lv, int& exp, int& maxHP) {
-    while (exp >= 100) {
-        exp = exp - 100;
-        lv++;
-        maxHP += 50;
-        hp += 10;
+    while (exp >= 100 && lv < 10) {
+            exp = exp - 100;
+            lv++;
+            maxHP += 50;
+            hp += 10;
+    }
+    if (lv >= 10 && exp >= 100) {
+        lv = 10;
+        exp = 100;
     }
     if (hp >= maxHP) {
         hp = maxHP;
@@ -546,9 +549,53 @@ void event12(string& DM1, string& DM2, bool& wandaKill, int& hp, int& maxHP, int
     }
 }
 
-bool timeStone=0; //=1 when meet event 15
-int numOfnTravel=0; // number of event T travels to
-int maxhp=0; //max hp through events until meet event 15
+struct {
+    bool timeTravel = 0; //Traveling=1 when meet event 15
+    int numOfnTravel = 0; // number of event T travels to
+    int maxhp = 0; //max hp through events until meet event 15
+    int timeStone = 0;
+    string events;
+    int result = 0;
+    int n, m; //n is a event (1-9), m is number after n (0-5)
+    int numOfn = 0; //số lượng của sự kiện, sự kiện thứ numOfn
+    int hp;
+    int lv;
+    int exp;
+    int ts; //0-5 stone
+    int maxHP = hp;
+    //event7:
+    int liviTimes;
+    bool livitation = false;
+    float Gy = 0;
+    //event8:
+    bool wong = 0, fakeWong = 0, wongHelp = 0, wongHarm = 0, KT = 0, fakeLivi = 0; //KT=1 when Wong return to Kamar-Taj
+    int wongTimes = 3, fakeWongTimes = 3;
+    //event9:
+    bool CPpoison = 0; // CPpoison mean that after get poison and meet CP, Strange may get poison again but poisonTimes can not be 3 at this time
+    //event11:
+    int poisonTimes = 3;
+    bool poison = 0, poisonWong = 0; //poisonWong = 1 when event8 affect after get poison
+    int inilv = 0; //lv is decresed when get poison
+    //event12:
+    string DM1, DM2;
+    bool wandaKill = 0;
+    bool blockLivi = 0;
+}e15;
+
+void event15(int& numOfn, int& hp) {
+    if (e15.timeTravel == 0 && hp >= e15.maxhp) {
+        e15.maxhp = hp;
+        e15.numOfnTravel = numOfn;
+    }
+}
+void checkEvent15(int& hp, int& numOfn, int& lv, int& exp, int& ts) {
+    if (numOfn == e15.numOfnTravel && e15.timeTravel == 1) {
+        hp = e15.maxhp;
+        lv = 10;
+        exp = 100;
+        ts = e15.timeStone;
+    }
+}
 
 int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & events) {
     ///Students have to complete this function and DO NOT modify any parameters in this function.
@@ -586,6 +633,7 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
             n = (int)events[i] - 48;
             m = (int)events[i + 1] - 48;
             numOfn++;
+            checkEvent15(hp, numOfn, lv, exp, ts);
             //events 1 to 5 and 10 to 15
             if (n >= 1 && n <= 5) {
                 if (n == 1 && m <= 5 && m >= 0) {
@@ -595,7 +643,6 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
                         event10(hp, maxHP);
                         i++;
                     }
-
                     //event11
                     if (m == 1) {
                         n += 10;
@@ -642,15 +689,17 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
                     }
 
                     //event15
-                    if (m == 5 && timeStone==0) {
-                        n += 14;
-                        timeStone=1;
-                        cout << "time travel!!"<<endl; //add
-                        return handleEvents(HP,LV, EXP, TS, events);
-                    }
-                    else {
-                        n += 14;
-                        i++;
+                    if (m == 5) {
+                        if (e15.timeTravel == 0 && ts > 0) {
+                            n += 15;
+                            e15.timeTravel = 1;
+                            e15.timeStone = ts - 1;
+                            return handleEvents(HP, LV, EXP, TS, events);
+                        }
+                        else if (m == 5 && (e15.timeTravel == 1 || ts == 0)) {
+                            n += 15;
+                            i++;
+                        }
                     }
                 }
                 else {
@@ -717,9 +766,10 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
                 }
                 dead(n, lv, inilv, poison, poisonWong, fakeWong, fakeWongTimes, livitation);
             }
-            else result = hp + lv + exp + ts;
             poisonWong = 0;
             upLevelsAndHP(hp, lv, exp, maxHP);
+            event15(numOfn, hp);
+
         }
         cout <<"event:" << n << " " << "numOfn:" << numOfn << endl; // add
         cout << hp << " " << lv << " " << exp << " " << ts << endl; //add
