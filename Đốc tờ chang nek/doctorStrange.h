@@ -18,9 +18,11 @@ void upLevelsAndHP(int& hp, int& lv, int& exp,int& ts, int& maxHP) {
             maxHP += 50;
             hp += 10;
     }
-    if (lv >= 10 && exp >= 100) {
+    if (lv >= 10) {
         lv = 10;
-        exp = 100;
+        if (exp >= 100) {
+            exp = 100;
+        }
     }
     if (hp >= maxHP) {
         hp = maxHP;
@@ -337,10 +339,11 @@ void event8(int& n,int& lv, bool& wong, bool& fakeWong, int& wongTimes, int& fak
     }
     // if event 13 and event 14 then {fakeWong=0; fakeWongTimes=3;
 }
-void event8Check(int& n,int& lv, bool& wong,bool& fakeWong,bool& wongHelp, bool& wongHarm,int& wongTimes,int& fakeWongTimes, bool& KT, bool& livitation,bool& fakeLivi, bool& poison, bool& poisonWong) {
+void event8Check(int& n,int& lv, bool& wong,bool& fakeWong,bool& wongHelp, bool& wongHarm,int& wongTimes,int& fakeWongTimes, bool& KT, bool& livitation,bool& fakeLivi, bool& poison, bool& poisonWong, bool& poiRepeat) {
     if (wong) {
         if (poison && poisonWong) {
             poison = 0;
+            poiRepeat = 0;
             wongTimes--;
         }
         if (wongHelp) {
@@ -380,9 +383,9 @@ void event8Check(int& n,int& lv, bool& wong,bool& fakeWong,bool& wongHelp, bool&
     }
 }
 
-void event9(bool& poison, int& lv, int& inilv, bool& CPpoison,bool& fakeWong, int& fakeWongTimes, bool& fakeLivi, bool& livitation) {
+void event9(bool& poison, int& lv, int& inilv, bool& CPpoison,bool& fakeWong, int& fakeWongTimes, bool& fakeLivi, bool& livitation, bool& poiRepeat) {
         if (poison) {
-            CPpoison = 1;
+            poiRepeat=0;
             lv += inilv;
             poison = 0;
             inilv = 0;
@@ -413,10 +416,10 @@ void event10(int& hp, int& maxHP) {
     }
 }
 
-void event11(int& hp, int& lv,bool& poison, int &poisonTimes,int& inilv, bool& CPpoison) {
+void event11(int& hp, int& lv,bool& poison, int &poisonTimes,int& inilv, bool& CPpoison, bool& poiRepeat) {
     if (poisonTimes > 0 && poison) {
         hp -= 50;
-        if (poisonTimes==3 || CPpoison) {
+        if (poiRepeat==0) {
             if (lv == 2) {
                 lv = 1;
                 inilv = 1;
@@ -429,21 +432,21 @@ void event11(int& hp, int& lv,bool& poison, int &poisonTimes,int& inilv, bool& C
                 lv -= 2;
                 inilv = 2;
             }
-            CPpoison = 0;
         }
     }
 }
-void event11Check(bool& poison, int& poisonTimes, int& lv, int& inilv) {
+void event11Check(bool& poison, int& poisonTimes, int& lv, int& inilv, bool& poiRepeat) {
     if (poison) {
         if (poisonTimes == 0) {
             lv += inilv;
             poison = 0;
-            poisonTimes--;
+            poiRepeat == 0;
         }
+        else poisonTimes--;
     }
 }
 
-void dead(int& n, int& lv, int& inilv, bool& poison, bool& poisonWong, bool& fakeWong, int& fakeWongTimes, bool& livitation) {
+void dead(int& n, int& lv, int& inilv, bool& poison, bool& poisonWong, bool& fakeWong, int& fakeWongTimes, bool& livitation, bool& poiRepeat) {
     if (((n >= 1 && n <= 5) || poisonWong == 1) && fakeWong == 1) {
         fakeWong = 0;
         fakeWongTimes = 3;
@@ -451,6 +454,7 @@ void dead(int& n, int& lv, int& inilv, bool& poison, bool& poisonWong, bool& fak
     if (poison) {
         lv += inilv;
         poison = 0;
+        poiRepeat = 0;
     }
     if (livitation && lv > 2) {
         lv -= 2;
@@ -726,7 +730,7 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
     bool CPpoison = 0; // CPpoison mean that after get poison and meet CP, Strange may get poison again but poisonTimes can not be 3 at this time
     //event11:
     int poisonTimes=3;
-    bool poison = 0, poisonWong = 0; //poisonWong = 1 when event8 affect after get poison
+    bool poison = 0, poisonWong = 0, poiRepeat=0; //poisonWong = 1 when event8 affect after get poison
     int inilv=0; //lv is decresed when get poison
     //event12
     int wandaTS=0;
@@ -743,6 +747,7 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
             m = (int)events[i + 1] - 48;
             numOfn++;
             checkEvent15(hp, numOfn, lv, exp, ts);
+            event11Check(poison, poisonTimes, lv, inilv, poiRepeat);
             //events 1 to 5 and 10 to 15
             if (n >= 1 && n <= 5) {
                 if (n == 1 && m <= 5 && m >= 0) {
@@ -757,9 +762,13 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
                         n += 10;
                         poison = 1;
                         poisonWong = 1;
-                        event8Check(n, lv, wong, fakeWong, wongHelp, wongHarm, wongTimes, fakeWongTimes, KT, livitation, fakeLivi, poison, poisonWong);
-                        event11(hp, lv,poison, poisonTimes, inilv,CPpoison);
+                        event8Check(n, lv, wong, fakeWong, wongHelp, wongHarm, wongTimes, fakeWongTimes, KT, livitation, fakeLivi, poison, poisonWong, poiRepeat);
+                        event11(hp, lv,poison, poisonTimes, inilv,CPpoison, poiRepeat);
                         poisonWong = 0;
+                        if (poiRepeat == 0) {
+                            poisonTimes = 3;
+                        }
+                        poiRepeat = 1;
                         i++;
                     }
 
@@ -836,11 +845,10 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
                     }
                 }
                 else {
-                    event11Check(poison, poisonTimes, lv, inilv);
                     event7(hp, numOfn, Gy);
                     event1To5(hp, lv, exp, ts, n, maxHP, numOfn, livitation, Gy, liviTimes, wong, fakeWong, wongHelp,wongHarm);
                     livitationCheck(lv, livitation, liviTimes);
-                    event8Check(n, lv, wong, fakeWong, wongHelp, wongHarm, wongTimes, fakeWongTimes, KT, livitation, fakeLivi, poison, poisonWong);
+                    event8Check(n, lv, wong, fakeWong, wongHelp, wongHarm, wongTimes, fakeWongTimes, KT, livitation, fakeLivi, poison, poisonWong, poiRepeat);
                 }
             }
             //event 6
@@ -855,7 +863,6 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
                 }
                 string thanchu=events.substr(i+2,endTC-1); //Thần chú
                 i = i + 1 + endTC;
-                event11Check(poison, poisonTimes, lv, inilv);
                 event7(hp, numOfn, Gy);
                 readFileEvent6(thanchu, atk, def);
                 event6(hp, lv, exp, ts, maxHP, numOfn, atk, def, thanchu, livitation, Gy, liviTimes);
@@ -873,19 +880,19 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
                     fakeWong = 0;
                     fakeWongTimes = 3;
                 }
-                event8Check(n, lv, wong, fakeWong, wongHelp, wongHarm, wongTimes, fakeWongTimes, KT, livitation, fakeLivi, poison, poisonWong);
+                event8Check(n, lv, wong, fakeWong, wongHelp, wongHarm, wongTimes, fakeWongTimes, KT, livitation, fakeLivi, poison, poisonWong, poiRepeat);
             }
 
             //event 8
             if (n == 8) {
                 event8(n, lv, wong, fakeWong, wongTimes, fakeWongTimes, KT);
-                event8Check(n, lv, wong, fakeWong, wongHelp, wongHarm, wongTimes, fakeWongTimes, KT, livitation, fakeLivi, poison, poisonWong);
+                event8Check(n, lv, wong, fakeWong, wongHelp, wongHarm, wongTimes, fakeWongTimes, KT, livitation, fakeLivi, poison, poisonWong, poiRepeat);
             }
 
             //event 9
             if (n == 9) {
                 hp = maxHP;
-                event9(poison, lv, inilv, CPpoison, fakeWong, fakeWongTimes, fakeLivi, livitation);
+                event9(poison, lv, inilv, CPpoison, fakeWong, fakeWongTimes, fakeLivi, livitation, poiRepeat);
             }
             //dead
             if (hp <= 0) {
@@ -897,7 +904,7 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
                     result = -1;
                     break;
                 }
-                dead(n, lv, inilv, poison, poisonWong, fakeWong, fakeWongTimes, livitation);
+                dead(n, lv, inilv, poison, poisonWong, fakeWong, fakeWongTimes, livitation, poiRepeat);
             }
             poisonWong = 0;
             upLevelsAndHP(hp, lv, exp, ts, maxHP);
