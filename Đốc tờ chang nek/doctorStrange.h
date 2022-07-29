@@ -11,7 +11,7 @@
 
 using namespace std;
 
-void upLevelsAndHP(int& hp, int& lv, int& exp, int& maxHP) {
+void upLevelsAndHP(int& hp, int& lv, int& exp,int& ts, int& maxHP) {
     while (exp >= 100 && lv < 10) {
             exp = exp - 100;
             lv++;
@@ -30,6 +30,9 @@ void upLevelsAndHP(int& hp, int& lv, int& exp, int& maxHP) {
         if (hp >= 999) {
             hp = 999;
         }
+    }
+    if (ts > 5) {
+        ts = 5;
     }
 }
 
@@ -180,7 +183,6 @@ void event6(int& hp, int& lv, int& exp, int& ts, int& maxHP, int& numOfn, int& a
     if (winRate > Fx) {
         exp += 200;
         ts++;
-        upLevelsAndHP(hp, lv, exp, maxHP);
     }
     else {
         if (hp < 100) {
@@ -189,7 +191,6 @@ void event6(int& hp, int& lv, int& exp, int& ts, int& maxHP, int& numOfn, int& a
         else hp = hp - hp * (100 - bloodLoss) / 100;
     }
 }
-
 void readFileEvent6 (string& thanchu, int& atk, int& def) {
     //attack
     for (int a = 0; a < thanchu.size(); a++) { //a and A
@@ -303,7 +304,6 @@ void event7(int& hp,int& numOfn, float& Gy) {
     Gy = (numOfn + y) % 100;
 
 }
-
 void livitationCheck(int& lv,bool& livitation, int& liviTimes) {
     if (livitation) {
         if (liviTimes == 0 && lv > 2) {
@@ -337,7 +337,6 @@ void event8(int& n,int& lv, bool& wong, bool& fakeWong, int& wongTimes, int& fak
     }
     // if event 13 and event 14 then {fakeWong=0; fakeWongTimes=3;
 }
-
 void event8Check(int& n,int& lv, bool& wong,bool& fakeWong,bool& wongHelp, bool& wongHarm,int& wongTimes,int& fakeWongTimes, bool& KT, bool& livitation,bool& fakeLivi, bool& poison, bool& poisonWong) {
     if (wong) {
         if (poison && poisonWong) {
@@ -434,7 +433,6 @@ void event11(int& hp, int& lv,bool& poison, int &poisonTimes,int& inilv, bool& C
         }
     }
 }
-
 void event11Check(bool& poison, int& poisonTimes, int& lv, int& inilv) {
     if (poison) {
         if (poisonTimes == 0) {
@@ -464,7 +462,7 @@ void dead(int& n, int& lv, int& inilv, bool& poison, bool& poisonWong, bool& fak
     }
 }
 
-void event12(string& DM1, string& DM2, bool& wandaKill, int& hp, int& maxHP, int& exp,int& ts, bool& blockLivi) {
+void event12(string& DM1, string& DM2, bool& wandaKill, int& hp, int& maxHP, int& exp,int& ts, bool& blockLivi,bool& livitation, bool& fakeLivi,bool& fakeWong, int& fakeWongTimes,int& wandaTS) {
     string codingString = DM1;
     string leftStr, rightStr;
     int a, ith;
@@ -544,6 +542,11 @@ void event12(string& DM1, string& DM2, bool& wandaKill, int& hp, int& maxHP, int
     }
     else {
         blockLivi = 1;
+        livitation = 0;
+        fakeLivi = 0;
+        fakeWong = 0;
+        fakeWongTimes = 3;
+        wandaTS = ts;
         ts = 0;
         exp += 15;
     }
@@ -554,34 +557,7 @@ struct {
     int numOfnTravel = 0; // number of event T travels to
     int maxhp = 0; //max hp through events until meet event 15
     int timeStone = 0;
-    string events;
-    int result = 0;
-    int n, m; //n is a event (1-9), m is number after n (0-5)
-    int numOfn = 0; //số lượng của sự kiện, sự kiện thứ numOfn
-    int hp;
-    int lv;
-    int exp;
-    int ts; //0-5 stone
-    int maxHP = hp;
-    //event7:
-    int liviTimes;
-    bool livitation = false;
-    float Gy = 0;
-    //event8:
-    bool wong = 0, fakeWong = 0, wongHelp = 0, wongHarm = 0, KT = 0, fakeLivi = 0; //KT=1 when Wong return to Kamar-Taj
-    int wongTimes = 3, fakeWongTimes = 3;
-    //event9:
-    bool CPpoison = 0; // CPpoison mean that after get poison and meet CP, Strange may get poison again but poisonTimes can not be 3 at this time
-    //event11:
-    int poisonTimes = 3;
-    bool poison = 0, poisonWong = 0; //poisonWong = 1 when event8 affect after get poison
-    int inilv = 0; //lv is decresed when get poison
-    //event12:
-    string DM1, DM2;
-    bool wandaKill = 0;
-    bool blockLivi = 0;
 }e15;
-
 void event15(int& numOfn, int& hp) {
     if (e15.timeTravel == 0 && hp >= e15.maxhp) {
         e15.maxhp = hp;
@@ -595,6 +571,138 @@ void checkEvent15(int& hp, int& numOfn, int& lv, int& exp, int& ts) {
         exp = 100;
         ts = e15.timeStone;
     }
+}
+
+void event13(string& matrix,int& w, int& hp, bool& wandaKill) {
+    int** shield = new int* [7];
+    int** weekness = new int* [w];
+    int sum=0;
+    int col, row,col2, row2;
+    int minimum=0;
+    int a=0, b=0;
+    bool min = 0;
+    bool success=0; // =0 means win, =1 means lose
+    for (int i = 0; i < 7; i++) {
+        shield[i] = new int[7];
+    }
+    for (int i = 0; i < w; i++) {
+        weekness[i] = new int[w];
+    }
+    int h = 0;
+    for (int i = 0; i<7; i++) {
+        for (int j = 0; j < 7; j++) {
+            shield[i][j] = (int)matrix[h]-48;
+            h += 2;
+        }
+    }
+    for (int i = 0; i <= 7-w; i++) {
+        for (int j = 0; j <= 7-w; j++) {
+            for (int k = i; k < w+i; k++) {
+                for (int h = j; h < w+j; h++) {
+                    sum = sum + shield[k][h];
+                }
+            }
+            if (min == 0) {
+                minimum = sum;
+                col = j;
+                row = i;
+                min = 1;
+            }
+            if (minimum > sum) {
+                minimum = sum;
+                row = i;
+                col = j;
+            }
+            sum = 0;
+        }
+    }
+    for (int i = row; i < row + w; i++) {
+        for (int j = col; j < col + w; j++) {
+            weekness[a][b] = shield[i][j];
+            a++;
+        }
+        a = 0;
+        b++;
+    }
+    for (int i = 0; i <w; i++) {
+        for (int j = 0; j <w-1; j++) {
+            if (weekness[i][j] > weekness[i][j + 1]) {
+                success = 1;
+            }
+        }
+    }
+
+    if (success == 0) {
+        hp = hp + minimum*row*col;
+    }
+    else if (success == 1) {
+        hp = hp - minimum*row*col;
+        if (hp <= 0 && wandaKill==1) {
+            hp = 1;
+        }
+    }
+
+    for (int i = 0; i < 7; i++) {
+        delete[] shield[i];
+    }
+    delete[] shield;
+    for (int i = 0; i < w; i++) {
+        delete[] weekness[i];
+    }
+    delete[] weekness;
+}
+
+void event14(string& doorSpace, int& moveTimes,int& numOfn,int& hp,int& lv,int& exp, int& ts, bool& livitation, bool& fakeLivi, int& wandaTS) {
+    stringstream ss;
+    ss << doorSpace;
+    int space=0, mid,top,bot;
+    bool exit = 0;
+    for (int i = 0; i < doorSpace.size(); i++) {
+        if (doorSpace[i] == ' ') {
+            space++;
+        }
+    }
+    int* door = new int[space+1];
+    for (int i = 0; i < space+1; i++) {
+        ss >> door[i];
+    }
+    top = space;
+    bot = 1;
+    while (bot != top) {
+        mid = (bot + top) / 2;
+        if (door[0] == door[mid]) {
+            exit = 1;
+            moveTimes++;
+            break;
+        }
+        else if (door[0] < door[mid]) {
+            moveTimes++;
+            bot = mid + 1;
+        }
+        else {
+            moveTimes++;
+            top = mid - 1;
+        }
+    }
+    if (moveTimes > log2(space + 1) || exit==0) {
+        exp += 150;
+        livitation = 1;
+        fakeLivi = 0;
+        ts = ts + wandaTS;
+        wandaTS = 0;
+    }
+    else {
+        lv = 1;
+        hp = hp - moveTimes * (numOfn % 10) * 7;
+    }
+    delete[] door;
+    ss.clear();
+}
+
+void wandaAttackKT(bool& fakeWong, int& fakeWongTimes, bool& fakeLivi) {
+    fakeWong = 0;
+    fakeWongTimes = 3;
+    fakeLivi = 0;
 }
 
 int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & events) {
@@ -620,11 +728,12 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
     int poisonTimes=3;
     bool poison = 0, poisonWong = 0; //poisonWong = 1 when event8 affect after get poison
     int inilv=0; //lv is decresed when get poison
-    //event12:
+    //event12
+    int wandaTS=0;
     string DM1, DM2;
     bool wandaKill = 0;
     bool blockLivi = 0;
-    //event15
+    //event14
     for (int i = 0; i < events.size(); i++) {
         if (events[i] == '#' || events[i] == '!') {
             continue;
@@ -650,6 +759,7 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
                         poisonWong = 1;
                         event8Check(n, lv, wong, fakeWong, wongHelp, wongHarm, wongTimes, fakeWongTimes, KT, livitation, fakeLivi, poison, poisonWong);
                         event11(hp, lv,poison, poisonTimes, inilv,CPpoison);
+                        poisonWong = 0;
                         i++;
                     }
 
@@ -671,21 +781,44 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
                                 break;
                             }
                         }
-                        event12(DM1, DM2, wandaKill, hp, maxHP, exp, ts, blockLivi);
+                        event12(DM1, DM2, wandaKill, hp, maxHP, exp, ts, blockLivi,livitation, fakeLivi,fakeWong, fakeWongTimes,wandaTS);
                         i = i + 2 + endDM1 + endDM2;
                     }
 
                     //event13
                     if (m == 3) {
                         n += 12;
-
-                        i++;
+                        wandaAttackKT(fakeWong, fakeWongTimes, fakeLivi);
+                        int w = (numOfn % 7) > 2 ? (numOfn % 7) : 2;
+                        string matrix;
+                        int endMatrix=0;
+                        for (int k = i+3; k < events.size(); k++) {
+                            endMatrix += 1;
+                            if (events[k] == '#' || events[k] == '!') {
+                                matrix = events.substr(i + 3, endMatrix - 1);
+                                break;
+                            }
+                        }
+                        event13(matrix, w, hp, wandaKill);
+                        i=i+2+endMatrix;
                     }
 
                     //event14
                     if (m == 4) {
                         n += 13;
-                        i++;
+                        string doorSpace;
+                        wandaAttackKT(fakeWong, fakeWongTimes, fakeLivi);
+                        int endDoorSpace = 0;
+                        int moveTimes = 0;
+                        for (int k = i + 3; k < events.size(); k++) {
+                            endDoorSpace += 1;
+                            if (events[k] == '#' || events[k] == '!') {
+                                doorSpace = events.substr(i + 3, endDoorSpace-1);
+                                break;
+                            }
+                        }
+                        event14(doorSpace,moveTimes,numOfn,hp,lv,exp,ts,livitation,fakeLivi,wandaTS);
+                        i=i+2+endDoorSpace;
                     }
 
                     //event15
@@ -767,15 +900,20 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
                 dead(n, lv, inilv, poison, poisonWong, fakeWong, fakeWongTimes, livitation);
             }
             poisonWong = 0;
-            upLevelsAndHP(hp, lv, exp, maxHP);
+            upLevelsAndHP(hp, lv, exp, ts, maxHP);
             event15(numOfn, hp);
-
         }
         cout <<"event:" << n << " " << "numOfn:" << numOfn << endl; // add
         cout << hp << " " << lv << " " << exp << " " << ts << endl; //add
     }
+    //event15
+    e15.numOfnTravel = 0;
+    e15.timeTravel = 0;
+    e15.maxhp = 0;
+    e15.timeStone = 0;
+    //
     result = hp + lv + exp + ts;
-    cout << endl << "result nek" << endl; // add
+    cout << endl << "result" << endl; // add
     cout << hp << " " << lv << " " << exp << " " << ts << endl;
     cout << events << endl;
     return result;
