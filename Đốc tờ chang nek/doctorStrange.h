@@ -383,7 +383,7 @@ void event8Check(int& n,int& lv, bool& wong,bool& fakeWong,bool& wongHelp, bool&
     }
 }
 
-void event9(bool& poison, int& lv, int& inilv, bool& CPpoison,bool& fakeWong, int& fakeWongTimes, bool& fakeLivi, bool& livitation, bool& poiRepeat) {
+void event9(bool& poison, int& lv, int& inilv,bool& fakeWong, int& fakeWongTimes, bool& fakeLivi, bool& livitation, bool& poiRepeat) {
         if (poison) {
             poiRepeat=0;
             lv += inilv;
@@ -416,7 +416,7 @@ void event10(int& hp, int& maxHP) {
     }
 }
 
-void event11(int& hp, int& lv,bool& poison, int &poisonTimes,int& inilv, bool& CPpoison, bool& poiRepeat) {
+void event11(int& hp, int& lv,bool& poison, int &poisonTimes,int& inilv, bool& poiRepeat) {
     if (poisonTimes > 0 && poison) {
         hp -= 50;
         if (poiRepeat==0) {
@@ -433,6 +433,7 @@ void event11(int& hp, int& lv,bool& poison, int &poisonTimes,int& inilv, bool& C
                 inilv = 2;
             }
         }
+        poiRepeat = 1;
     }
 }
 void event11Check(bool& poison, int& poisonTimes, int& lv, int& inilv, bool& poiRepeat) {
@@ -578,6 +579,8 @@ void checkEvent15(int& hp, int& numOfn, int& lv, int& exp, int& ts) {
 }
 
 void event13(string& matrix,int& w, int& hp, bool& wandaKill) {
+    stringstream ss;
+    ss << matrix;
     int** shield = new int* [7];
     int** weekness = new int* [w];
     int sum=0;
@@ -592,11 +595,9 @@ void event13(string& matrix,int& w, int& hp, bool& wandaKill) {
     for (int i = 0; i < w; i++) {
         weekness[i] = new int[w];
     }
-    int h = 0;
     for (int i = 0; i<7; i++) {
         for (int j = 0; j < 7; j++) {
-            shield[i][j] = (int)matrix[h]-48;
-            h += 2;
+            ss >> shield[i][j];
         }
     }
     for (int i = 0; i <= 7-w; i++) {
@@ -637,15 +638,14 @@ void event13(string& matrix,int& w, int& hp, bool& wandaKill) {
     }
 
     if (success == 0) {
-        hp = hp + minimum*row*col;
+        hp = hp + minimum*(row+1)*(col+1);
     }
     else if (success == 1) {
-        hp = hp - minimum*row*col;
+        hp = hp - minimum* (row + 1) * (col + 1);
         if (hp <= 0 && wandaKill==1) {
             hp = 1;
         }
     }
-
     for (int i = 0; i < 7; i++) {
         delete[] shield[i];
     }
@@ -656,7 +656,7 @@ void event13(string& matrix,int& w, int& hp, bool& wandaKill) {
     delete[] weekness;
 }
 
-void event14(string& doorSpace, int& moveTimes,int& numOfn,int& hp,int& lv,int& exp, int& ts, bool& livitation, bool& fakeLivi, int& wandaTS) {
+void event14(string& doorSpace, int& moveTimes,int& numOfn,int& hp,int& lv,int& exp, int& ts, bool& livitation, bool& fakeLivi, int& wandaTS, bool& wandaKill) {
     stringstream ss;
     ss << doorSpace;
     int space=0, mid,top,bot;
@@ -698,6 +698,9 @@ void event14(string& doorSpace, int& moveTimes,int& numOfn,int& hp,int& lv,int& 
     else {
         lv = 1;
         hp = hp - moveTimes * (numOfn % 10) * 7;
+        if (hp <= 0 && wandaKill == 1) {
+            hp = 1;
+        }
     }
     delete[] door;
     ss.clear();
@@ -720,14 +723,12 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
     int ts = stoi(TS); //0-5 stone
     int maxHP = hp;
     //event7:
-    int liviTimes;
+    int liviTimes=3;
     bool livitation=false;
     float Gy = 0;
     //event8:
     bool wong = 0, fakeWong = 0, wongHelp = 0, wongHarm = 0, KT = 0, fakeLivi=0; //KT=1 when Wong return to Kamar-Taj
     int wongTimes = 3,fakeWongTimes=3;
-    //event9:
-    bool CPpoison = 0; // CPpoison mean that after get poison and meet CP, Strange may get poison again but poisonTimes can not be 3 at this time
     //event11:
     int poisonTimes=3;
     bool poison = 0, poisonWong = 0, poiRepeat=0; //poisonWong = 1 when event8 affect after get poison
@@ -762,13 +763,12 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
                         n += 10;
                         poison = 1;
                         poisonWong = 1;
-                        event8Check(n, lv, wong, fakeWong, wongHelp, wongHarm, wongTimes, fakeWongTimes, KT, livitation, fakeLivi, poison, poisonWong, poiRepeat);
-                        event11(hp, lv,poison, poisonTimes, inilv,CPpoison, poiRepeat);
-                        poisonWong = 0;
                         if (poiRepeat == 0) {
                             poisonTimes = 3;
                         }
-                        poiRepeat = 1;
+                        event8Check(n, lv, wong, fakeWong, wongHelp, wongHarm, wongTimes, fakeWongTimes, KT, livitation, fakeLivi, poison, poisonWong, poiRepeat);
+                        event11(hp, lv,poison, poisonTimes, inilv, poiRepeat);
+                        poisonWong = 0;
                         i++;
                     }
 
@@ -826,7 +826,7 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
                                 break;
                             }
                         }
-                        event14(doorSpace,moveTimes,numOfn,hp,lv,exp,ts,livitation,fakeLivi,wandaTS);
+                        event14(doorSpace,moveTimes,numOfn,hp,lv,exp,ts,livitation,fakeLivi,wandaTS,wandaKill);
                         i=i+2+endDoorSpace;
                     }
 
@@ -892,7 +892,7 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
             //event 9
             if (n == 9) {
                 hp = maxHP;
-                event9(poison, lv, inilv, CPpoison, fakeWong, fakeWongTimes, fakeLivi, livitation, poiRepeat);
+                event9(poison, lv, inilv, fakeWong, fakeWongTimes, fakeLivi, livitation, poiRepeat);
             }
             //dead
             if (hp <= 0) {
@@ -911,7 +911,12 @@ int handleEvents(string & HP, string & LV, string & EXP, string & TS, string & e
             event15(numOfn, hp);
         }
         cout <<"event:" << n << " " << "numOfn:" << numOfn << endl; // add
+        cout << "liviTimes" << liviTimes << " " << "livitation" << livitation << " " << "wong" << wong << " " << "fakeWong" << fakeWong <<  endl;
+        cout << "KT" << KT << " " << "fakeLivi" << fakeLivi << " " << "wongTimes" << wongTimes << " " << "fakeWongTimes" << fakeWongTimes << endl;
+        cout << "poisonTimes" << poisonTimes << " " << "poison" << poison << " " << "poisonWong" << poisonWong << " " << "poiRepeat" << poiRepeat << endl;
+        cout << "wandaKill" << wandaKill << " " << "blockLivi" << blockLivi << " " << "maxHP" << maxHP << endl;
         cout << hp << " " << lv << " " << exp << " " << ts << endl; //add
+        cout << endl;
     }
     //event15
     e15.numOfnTravel = 0;
